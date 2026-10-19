@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <title>Manutenção Corretiva – EKS 412</title>
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            background: #f2f2f2;
+            color: #1a1a1a
+        }
+
+        header {
+            background: #ffcd00;
+            border-bottom: 4px solid #222;
+            padding: 18px 24px
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 26px
+        }
+
+        header .tag {
+            display: inline-block;
+            background: #222;
+            color: #ffcd00;
+            font-size: 12px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            margin-left: 10px;
+            vertical-align: middle
+        }
+
+        header p {
+            margin: 6px 0 0;
+            font-size: 13px
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 0 16px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+            padding: 18px;
+            margin-bottom: 20px
+        }
+
+        .card h2 {
+            margin: 0 0 4px;
+            font-size: 18px
+        }
+
+        .sub {
+            font-size: 12px;
+            color: #555;
+            margin: 0 0 12px
+        }
+
+        .kpis {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px
+        }
+
+        .kpi {
+            flex: 1;
+            min-width: 150px;
+            border-left: 5px solid #ffcd00;
+            background: #fafafa;
+            padding: 10px 14px
+        }
+
+        .kpi b {
+            display: block;
+            font-size: 28px
+        }
+
+        .kpi span {
+            font-size: 12px;
+            color: #555
+        }
+
+        .kpi.red {
+            border-left-color: #d63a2a
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px
+        }
+
+        th {
+            background: #fafafa;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 8px 6px;
+            border-bottom: 1px solid #ddd
+        }
+
+        td {
+            padding: 6px;
+            border-bottom: 1px solid #eee
+        }
+
+        td.n,
+        th.n {
+            text-align: right
+        }
+
+        .track {
+            background: #eee;
+            height: 14px;
+            width: 100%;
+            display: flex;
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .f1 {
+            background: #ffcd00;
+            height: 100%
+        }
+
+        .f2 {
+            background: #d63a2a;
+            height: 100%
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 13px
+        }
+
+        .row .l {
+            width: 230px;
+            flex: none
+        }
+
+        .row .t {
+            flex: 1
+        }
+
+        .row .v {
+            width: 50px;
+            text-align: right;
+            font-weight: bold;
+            flex: none
+        }
+
+        .leg {
+            font-size: 12px;
+            margin-top: 10px
+        }
+
+        .leg i {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin: 0 4px 0 12px;
+            vertical-align: middle
+        }
+
+        .cols {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            height: 230px;
+            border-bottom: 2px solid #222;
+            padding-top: 10px
+        }
+
+        .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            height: 100%
+        }
+
+        .col .stk {
+            width: 70%;
+            display: flex;
+            flex-direction: column-reverse
+        }
+
+        .col .top {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px
+        }
+
+        .mes {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px
+        }
+
+        .mes div {
+            flex: 1;
+            text-align: center;
+            font-size: 12px
+        }
+
+        .seg {
+            width: 100%
+        }
+
+        .ctl {
+            font-size: 13px;
+            margin: 6px 0 10px
+        }
+
+        .err {
+            background: #d63a2a;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px
+        }
+
+        .ok {
+            color: #1b7a2b;
+            font-weight: bold
+        }
+
+        .bad {
+            color: #d63a2a;
+            font-weight: bold
+        }
+
+        .warn {
+            background: #fff6d6;
+            border-left: 4px solid #ffcd00;
+            padding: 8px 10px;
+            font-size: 12px;
+            margin-bottom: 10px
+        }
+
+        .small {
+            font-size: 12px;
+            color: #444;
+            line-height: 1.5
+        }
+
+        td.c {
+            text-align: center
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Manutenção Corretiva – EKS 412 <span class="tag">Mercado Livre PE01</span></h1>
+        <p>Cabo de Santo Agostinho – PE · Séries FN732700 a FN732715 · Período analisado: 01/01/2026 a 30/09/2026 (data
+            de criação do chamado)</p>
+    </header>
+    <main id="app"></main>
+
+    <script>
+        var app = document.getElementById('app');
+
+        /* ===== DADOS ===== */
+        var EQ = [];
+        for (var i = 0; i < 16; i++) EQ.push('FN7327' + (i < 10 ? '0' + i : '' + i));
+        var FECH = [17, 19, 45, 27, 23, 22, 13, 24, 14, 13, 17, 23, 13, 22, 16, 20];
+        var ABER = [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 2, 1, 0];
+        var MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set'];
+        var M_FECH = [23, 30, 50, 32, 79, 51, 26, 14, 23];
+        var M_ABER = [0, 0, 0, 0, 0, 0, 1, 3, 2];
+        var CATS = ['Telemetria', 'Erro / falha eletrônica', 'Modo tartaruga / movimentação', 'Colisão / impacto', 'Vazamento / hidráulica', 'Direção / rodas', 'Elevação / braço', 'Carenagem / estrutura', 'Sensores / alarmes', 'Máquina reserva', 'Outros', 'Módulo / P. O. / Relatório de bateria'];
+        var CORES = ['#ffcd00', '#222222', '#e67e22', '#d63a2a', '#2980b9', '#8e44ad', '#16a085', '#7f8c8d', '#f39c12', '#27ae60', '#bdc3c7', '#95a5a6'];
+        /* Matriz mês x tipo (linhas = tipos, colunas = Jan..Set). Recontada na leitura da lista de fechadas. */
+        var MXC = [
+            [3, 11, 14, 3, 6, 13, 3, 1, 5],
+            [11, 7, 6, 6, 6, 11, 6, 4, 5],
+            [0, 5, 2, 1, 2, 1, 2, 3, 7],
+            [0, 0, 0, 2, 3, 6, 2, 0, 0],
+            [0, 0, 9, 5, 0, 5, 4, 0, 0],
+            [5, 2, 2, 1, 0, 1, 1, 1, 1],
+            [2, 1, 0, 0, 1, 2, 2, 1, 1],
+            [0, 2, 1, 2, 6, 3, 1, 1, 0],
+            [2, 1, 9, 5, 3, 3, 1, 1, 3],
+            [0, 0, 3, 2, 1, 1, 0, 0, 0],
+            [0, 1, 3, 5, 3, 5, 4, 2, 1],
+            [0, 0, 1, 0, 48, 0, 0, 0, 0]
+        ];
+        /* Matriz equipamento x tipo da leitura ANTERIOR (nao refeita) */
+        var MAT = [
+            [2, 4, 1, 0, 0, 2, 0, 0, 4, 0, 0, 4], [4, 5, 1, 1, 3, 1, 0, 0, 1, 0, 1, 2], [9, 15, 4, 0, 4, 3, 1, 0, 3, 0, 1, 5], [6, 8, 0, 0, 1, 1, 1, 4, 1, 0, 2, 3],
+            [3, 6, 0, 0, 2, 0, 2, 1, 3, 0, 2, 4], [5, 7, 0, 1, 0, 0, 2, 2, 2, 0, 0, 3], [3, 2, 0, 1, 1, 1, 0, 0, 1, 0, 1, 3], [4, 3, 1, 1, 0, 3, 1, 1, 2, 0, 4, 4],
+            [5, 2, 0, 0, 1, 0, 1, 1, 2, 0, 0, 2], [3, 3, 1, 1, 2, 0, 0, 0, 1, 0, 0, 2], [2, 4, 1, 2, 0, 0, 2, 1, 2, 0, 0, 3], [3, 4, 1, 0, 1, 1, 1, 1, 1, 7, 0, 3],
+            [2, 3, 0, 1, 1, 0, 0, 1, 1, 0, 1, 3], [4, 4, 2, 4, 1, 2, 0, 2, 1, 0, 0, 2], [2, 3, 0, 0, 2, 2, 0, 0, 3, 0, 1, 3], [2, 7, 1, 1, 1, 1, 0, 3, 0, 0, 1, 3]
+        ];
+
+        /* ===== AUXILIARES ===== */
+        function soma(a) { var s = 0; for (var i = 0; i < a.length; i++)s += a[i]; return s; }
+        function secao(nome, fn) {
+            var c = document.createElement('div');
+            c.className = 'card';
+            app.appendChild(c);
+            try { fn(c); }
+            catch (e) { c.innerHTML = '<div class="err">Erro na seção "' + nome + '": ' + e.message + '</div>'; }
+        }
+        function pct(v, t) { return t ? (v * 100 / t).toFixed(1).replace('.', ',') + '%' : '0%'; }
+
+        var TF = soma(FECH), TA = soma(ABER), TT = TF + TA;
+
+        /* ===== 1. KPIs ===== */
+        secao('Indicadores', function (c) {
+            var maxI = 0;
+            for (var i = 1; i < 16; i++) if (FECH[i] + ABER[i] > FECH[maxI] + ABER[maxI]) maxI = i;
+            c.innerHTML = '<h2>Resumo</h2><p class="sub">Chamados corretivos criados de janeiro a setembro de 2026.</p>' +
+                '<div class="kpis">' +
+                '<div class="kpi"><b>' + TT + '</b><span>Total de chamados</span></div>' +
+                '<div class="kpi"><b>' + TF + '</b><span>Fechados</span></div>' +
+                '<div class="kpi red"><b>' + TA + '</b><span>Abertos</span></div>' +
+                '<div class="kpi"><b>' + (TT / 16).toFixed(1).replace('.', ',') + '</b><span>Média por equipamento</span></div>' +
+                '<div class="kpi"><b>' + EQ[maxI].replace('FN', 'FN ') + '</b><span>Mais reincidente (' + (FECH[maxI] + ABER[maxI]) + ' chamados)</span></div>' +
+                '</div>';
+        });
+
+        /* ===== 2. Ranking ===== */
+        secao('Ranking', function (c) {
+            var idx = [];
+            for (var i = 0; i < 16; i++) idx.push(i);
+            idx.sort(function (a, b) { return (FECH[b] + ABER[b]) - (FECH[a] + ABER[a]); });
+            var mx = FECH[idx[0]] + ABER[idx[0]];
+            var h = '<h2>Ranking de equipamentos reincidentes</h2><p class="sub">Fechadas + abertas criadas de janeiro a setembro. Empates dividem a mesma posição.</p>' +
+                '<table><tr><th>#</th><th>Equipamento</th><th class="n">Fechadas</th><th class="n">Abertas</th><th class="n">Total</th><th class="n">% do total</th><th style="width:30%">Distribuição</th></tr>';
+            for (var k = 0; k < idx.length; k++) {
+                var e = idx[k], t = FECH[e] + ABER[e], pos = 1;
+                for (var j = 0; j < 16; j++) if (FECH[j] + ABER[j] > t) pos++;
+                h += '<tr><td>' + pos + '</td><td><b>' + EQ[e] + '</b></td><td class="n">' + FECH[e] + '</td><td class="n">' + ABER[e] + '</td><td class="n"><b>' + t + '</b></td><td class="n">' + pct(t, TT) + '</td>' +
+                    '<td><div class="track"><div class="f1" style="width:' + (FECH[e] * 100 / mx) + '%"></div><div class="f2" style="width:' + (ABER[e] * 100 / mx) + '%"></div></div></td></tr>';
+            }
+            h += '</table><div class="leg"><i style="background:#ffcd00"></i>Fechadas<i style="background:#d63a2a"></i>Abertas</div>';
+            c.innerHTML = h;
+        });
+
+        /* ===== 3. Por equipamento ===== */
+        secao('Por equipamento', function (c) {
+            var mx = 0, i;
+            for (i = 0; i < 16; i++) if (FECH[i] + ABER[i] > mx) mx = FECH[i] + ABER[i];
+            var h = '<h2>Chamados por equipamento</h2><p class="sub">Ordem numérica da série.</p>';
+            for (i = 0; i < 16; i++) {
+                h += '<div class="row"><div class="l">' + EQ[i] + '</div><div class="t"><div class="track"><div class="f1" style="width:' + (FECH[i] * 100 / mx) + '%"></div><div class="f2" style="width:' + (ABER[i] * 100 / mx) + '%"></div></div></div><div class="v">' + (FECH[i] + ABER[i]) + '</div></div>';
+            }
+            h += '<div class="leg"><i style="background:#ffcd00"></i>Fechadas<i style="background:#d63a2a"></i>Abertas</div>';
+            c.innerHTML = h;
+        });
+
+        /* ===== 4. Por mês ===== */
+        secao('Por mês', function (c) {
+            var mx = 0, i, H = 190;
+            for (i = 0; i < 9; i++) if (M_FECH[i] + M_ABER[i] > mx) mx = M_FECH[i] + M_ABER[i];
+            var h = '<h2>Chamados por mês de criação (janeiro a setembro)</h2><p class="sub">Amarelo: fechados. Vermelho: ainda abertos.</p><div class="cols">';
+            for (i = 0; i < 9; i++) {
+                h += '<div class="col"><div class="top">' + (M_FECH[i] + M_ABER[i]) + '</div><div class="stk">' +
+                    '<div class="seg" title="Fechados: ' + M_FECH[i] + '" style="background:#ffcd00;height:' + (M_FECH[i] * H / mx) + 'px"></div>' +
+                    '<div class="seg" title="Abertos: ' + M_ABER[i] + '" style="background:#d63a2a;height:' + (M_ABER[i] * H / mx) + 'px"></div></div></div>';
+            }
+            h += '</div><div class="mes">';
+            for (i = 0; i < 9; i++) h += '<div>' + MESES[i] + '</div>';
+            h += '</div><div class="leg"><i style="background:#ffcd00"></i>Fechados<i style="background:#d63a2a"></i>Abertos</div>';
+            c.innerHTML = h;
+        });
+
+        /* ===== 5. Tipo de falha (total) ===== */
+        secao('Tipo de falha', function (c) {
+            var tot = [], mx = 0, i;
+            for (i = 0; i < CATS.length; i++) { tot.push(soma(MXC[i])); if (tot[i] > mx) mx = tot[i]; }
+            var h = '<h2>Assunto / tipo de falha (chamados fechados)</h2><p class="sub">Classificação feita por mim a partir do assunto do chamado. A última linha reúne Módulo, P. O. e Relatório de bateria, que não descrevem um tipo de falha.</p>';
+            for (i = 0; i < CATS.length; i++) {
+                h += '<div class="row"><div class="l">' + CATS[i] + '</div><div class="t"><div class="track"><div class="f1" style="width:' + (tot[i] * 100 / mx) + '%"></div></div></div><div class="v">' + tot[i] + '</div></div>';
+            }
+            c.innerHTML = h;
+        });
+
+        /* ===== 6. Evolução mensal por tipo ===== */
+        secao('Evolução mensal', function (c) {
+            var ultimo = CATS.length - 1;
+            c.innerHTML = '<h2>Evolução mensal por tipo de falha (chamados fechados)</h2>' +
+                '<p class="sub">Cada coluna é um mês; cada cor é um tipo de falha. Passe o mouse sobre um trecho para ver o valor. Chamados abertos não entram (não têm tipo).</p>' +
+                '<div class="ctl"><label><input type="checkbox" id="ocMP"> Ocultar "Módulo / P. O. / Relatório de bateria" (48 deles são de maio e achatam o gráfico)</label></div>' +
+                '<div id="evo"></div><div class="leg" id="evoLeg"></div><div id="evoTab" style="margin-top:16px;overflow-x:auto"></div>';
+
+            function desenha() {
+                var oc = document.getElementById('ocMP').checked;
+                var H = 230, m, k, mx = 1, tm = [];
+                for (m = 0; m < 9; m++) {
+                    var s = 0;
+                    for (k = 0; k < CATS.length; k++) { if (oc && k === ultimo) continue; s += MXC[k][m]; }
+                    tm.push(s); if (s > mx) mx = s;
+                }
+                var h = '<div class="cols" style="height:' + (H + 30) + 'px">';
+                for (m = 0; m < 9; m++) {
+                    h += '<div class="col"><div class="top">' + tm[m] + '</div><div class="stk">';
+                    for (k = 0; k < CATS.length; k++) {
+                        if (oc && k === ultimo) continue;
+                        var v = MXC[k][m];
+                        if (v > 0) h += '<div class="seg" title="' + MESES[m] + ' – ' + CATS[k] + ': ' + v + '" style="background:' + CORES[k] + ';height:' + (v * H / mx) + 'px"></div>';
+                    }
+                    h += '</div></div>';
+                }
+                h += '</div><div class="mes">';
+                for (m = 0; m < 9; m++) h += '<div>' + MESES[m] + '</div>';
+                h += '</div>';
+                document.getElementById('evo').innerHTML = h;
+
+                var lg = '';
+                for (k = 0; k < CATS.length; k++) {
+                    if (oc && k === ultimo) continue;
+                    lg += '<i style="background:' + CORES[k] + '"></i>' + CATS[k] + ' ';
+                }
+                document.getElementById('evoLeg').innerHTML = lg;
+
+                var t = '<table><tr><th>Tipo de falha</th>';
+                for (m = 0; m < 9; m++) t += '<th class="n">' + MESES[m] + '</th>';
+                t += '<th class="n">Total</th></tr>';
+                var colTot = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+                for (k = 0; k < CATS.length; k++) {
+                    t += '<tr><td><i style="display:inline-block;width:10px;height:10px;background:' + CORES[k] + ';margin-right:6px"></i>' + CATS[k] + '</td>';
+                    for (m = 0; m < 9; m++) { t += '<td class="n">' + (MXC[k][m] || '·') + '</td>'; colTot[m] += MXC[k][m]; }
+                    t += '<td class="n"><b>' + soma(MXC[k]) + '</b></td></tr>';
+                }
+                t += '<tr><td><b>Total do mês</b></td>';
+                for (m = 0; m < 9; m++) t += '<td class="n"><b>' + colTot[m] + '</b></td>';
+                t += '<td class="n"><b>' + soma(colTot) + '</b></td></tr></table>';
+                document.getElementById('evoTab').innerHTML = t;
+            }
+            document.getElementById('ocMP').onchange = desenha;
+            desenha();
+        });
+
+        /* ===== 7. Assunto mais frequente por equipamento ===== */
+        secao('Assunto por equipamento', function (c) {
+            var h = '<h2>Assunto mais frequente por equipamento</h2>' +
+                '<div class="warn">Atenção: esta tabela usa a contagem equipamento × tipo da leitura anterior, que não foi refeita junto com o gráfico mensal. Os números podem divergir dos gráficos de tipo acima.</div>' +
+                '<table><tr><th>Equipamento</th><th class="n">Fechadas</th><th>Assunto mais frequente</th><th class="n">Qtd</th><th class="n">% do equipamento</th></tr>';
+            for (var i = 0; i < 16; i++) {
+                var b = 0, k, emp = false;
+                for (k = 1; k < CATS.length; k++) if (MAT[i][k] > MAT[i][b]) b = k;
+                for (k = 0; k < CATS.length; k++) if (k !== b && MAT[i][k] === MAT[i][b]) emp = true;
+                var s = soma(MAT[i]);
+                h += '<tr><td><b>' + EQ[i] + '</b></td><td class="n">' + s + '</td><td>' + CATS[b] + (emp ? ' <small>(empate)</small>' : '') + '</td><td class="n">' + MAT[i][b] + '</td><td class="n">' + pct(MAT[i][b], s) + '</td></tr>';
+            }
+            h += '</table>';
+            c.innerHTML = h;
+        });
+
+        /* ===== 8. Conferência ===== */
+        secao('Conferência', function (c) {
+            function lin(txt, a, b) {
+                return '<tr><td>' + txt + '</td><td class="n">' + a + '</td><td class="n">' + b + '</td><td class="c">' + (a === b ? '<span class="ok">OK</span>' : '<span class="bad">DIVERGE</span>') + '</td></tr>';
+            }
+            var h = '<h2>Conferência dos totais</h2><p class="sub">Soma dos dados embutidos neste arquivo. Mostra consistência interna, não prova que cada chamado foi classificado corretamente.</p>' +
+                '<table><tr><th>Verificação</th><th class="n">Valor A</th><th class="n">Valor B</th><th class="c">Resultado</th></tr>';
+            h += lin('Fechadas por equipamento × fechadas por mês', TF, soma(M_FECH));
+            h += lin('Abertas por equipamento × abertas por mês', TA, soma(M_ABER));
+            var tm = 0, m, k;
+            var somaTipos = 0;
+            for (k = 0; k < CATS.length; k++) somaTipos += soma(MXC[k]);
+            h += lin('Soma da matriz mês × tipo × fechadas', somaTipos, TF);
+            for (m = 0; m < 9; m++) {
+                var s = 0;
+                for (k = 0; k < CATS.length; k++) s += MXC[k][m];
+                h += lin('Mês ' + MESES[m] + ': soma dos tipos × fechadas do mês', s, M_FECH[m]);
+            }
+            var sm = 0;
+            for (var i = 0; i < 16; i++) sm += soma(MAT[i]);
+            h += lin('Matriz equipamento × tipo (leitura anterior) × fechadas', sm, TF);
+            h += '</table>';
+            c.innerHTML = h;
+        });
+
+        /* ===== 9. Limites ===== */
+        secao('Limites', function (c) {
+            c.innerHTML = '<h2>Limites destes dados</h2><div class="small">' +
+                '• A lista de fechadas não mostra a data de fechamento; o mês é o mês de criação do chamado.<br>' +
+                '• Só os chamados fechados têm tipo de falha; os 6 abertos têm apenas equipamento e data.<br>' +
+                '• Os tipos de falha são classificação minha, feita pelo texto do assunto. Alguns assuntos são ambíguos (por exemplo "Painel", "Pedal", "Barulho", "Conexões") e outra pessoa poderia classificá-los de outro modo.<br>' +
+                '• Excluídos: preventivas, envio de óleo, extintor, remoção de suporte e de acessório, cadastro de cartão e de operador, aplicação de lixeira, limpeza/inspeção e chamados de carregador com número, locação STR e 2 chamados da Amazon (REC3).<br>' +
+                '• Módulo, P. O. e Relatório de bateria (49 chamados, 48 em maio e 1 em março) entram como corretivo comum, em um tipo próprio.<br>' +
+                '• Período: criação de 01/01/2026 a 30/09/2026.' +
+                '</div>';
+        });
+    </script>
+</body>
+
+</html>
