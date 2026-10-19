@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard – Paradas da máquina FN732702</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1d2330;--mut:#6b7280;--red:#d64545;--amb:#e5a100;--grn:#2e9e5b;--blu:#2f6fdb;--line:#e4e7ec}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:20px 28px 8px}h1{font-size:22px;margin:0}header p{margin:4px 0 0;color:var(--mut);font-size:14px}
+main{padding:12px 28px 32px;display:grid;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:700}.kpi .l{font-size:12px;color:var(--mut);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.card h2{font-size:15px;margin:0 0 12px}
+.bar{display:grid;grid-template-columns:200px 1fr 90px;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.bar .track{background:#eef0f4;border-radius:6px;height:18px;overflow:hidden}
+.bar .fill{height:100%;background:var(--red);border-radius:6px}
+.bar .num{text-align:right;color:var(--mut);font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--mut);margin-top:10px;line-height:1.45}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+select,input{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--mut);font-weight:600;cursor:pointer;white-space:nowrap}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600}
+.t-Parada{background:#fde2e2;color:#a52a2a}.t-Restricao{background:#fff1cc;color:#8a5d00}.t-Operando{background:#dff3e8;color:#1f6b41}
+details{margin-top:4px}details summary{cursor:pointer;color:var(--blu);font-size:12px}
+.laudo{font-size:12px;color:#374151;margin-top:4px;line-height:1.4}
+</style></head><body>
+<header><h1>Paradas da máquina FN732713 (EKS 412S)</h1>
+<p>Ordens de serviço de 14/01/2026 a 22/09/2026 · Fonte: Relatórios de Atendimento Técnico (PDF)</p></header>
+<main>
+<section class="kpis" id="kpis"></section>
+<section class="grid2">
+  <div class="card"><h2>Tempo em máquina parada, por causa (min de atendimento)</h2><div id="causaBars"></div>
+    <div class="note">Tempo = hora de fim menos hora de início do atendimento, só para OS em que a máquina chegou parada. Não inclui translado e não é a duração real da parada, que não consta nos relatórios.</div></div>
+  <div class="card"><h2>Status na chegada do técnico</h2><div id="statusBars"></div>
+    <div class="note">Parada = máquina sem operar. Operando com restrição = máquina operando, mas com restrição. Operando = sem parada ao chegar.</div></div>
+</section>
+<section class="card">
+  <h2>Disponibilidade mensal (base 720 h)</h2>
+  <div id="dispChart"></div>
+  <div class="note">Disponibilidade = (720 h − horas em parada) ÷ 720 h. Horas em parada = tempo de atendimento das OS que chegaram paradas. Meses sem OS são tratados como 100%. Escala do eixo começa em 98%.</div>
+</section>
+<section class="card">
+  <h2>Todas as ocorrências</h2>
+  <div class="filters">
+    <select id="fStatus"><option value="">Todos os status</option><option>Parada</option><option>Operando com restrição</option><option>Operando</option></select>
+    <select id="fCausa"><option value="">Todas as causas</option></select>
+    <input id="fBusca" placeholder="Buscar no laudo ou OS">
+  </div>
+  <table><thead><tr>
+    <th data-k="os">O.S.</th><th data-k="data">Data</th><th data-k="status_inicial">Status inicial</th>
+    <th data-k="causa">Causa</th><th data-k="min_atend">Tempo (min)</th><th data-k="tecnico">Técnico</th><th data-k="status_final">Status final</th>
+  </tr></thead><tbody id="tbody"></tbody></table>
+</section>
+</main>
+<script>
+const D = [{"os": "056290", "data": "14/01/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando com restrição", "status_final": "Operando", "causa": "Sensores/micros/antenas", "min_atend": 30, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito o destravamento do micro magnético manualmente, após religar o equipamento foi efetuado testes. Equipamento liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "059951", "data": "23/02/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Telemetria/cartões", "min_atend": 35, "translado": "00:00", "tecnico": "Gerson Narciso Santos Junior", "laudo": "Conforme solicitado, foi realizado o cadastramento dos cartão de liberação do equipamento, onde foram feitos alguns testes e liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "059860", "data": "23/02/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Telemetria/cartões", "min_atend": 56, "translado": "00:30", "tecnico": "Gerson Narciso Santos Junior", "laudo": "Operador solicitou o cadastro do cartão de série 351193 no equipamento, onde foi realizado cadastror feito check-list e liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "062774", "data": "20/03/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Mecânica/fixação", "min_atend": 55, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Equipamento estava com o volante, lado carga, folgado. Foi feito a remoção do volante e apertado todas as fixações do mesmo. Após montagem o equipamento foi testado e liberado para operação", "ocorrencia": "000008 - CORRETIVA"}, {"os": "064647", "data": "09/04/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Colisão/dano por operação", "min_atend": 50, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Equipamento esta com um amassado na parte lateral, foi informado a manutenção do cliente que se caso algo se danifique será considerado mau uso. Amassado não impacta na operação", "ocorrencia": "000008 - CORRETIVA"}, {"os": "065597", "data": "20/04/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Sensores/micros/antenas", "min_atend": 151, "translado": "00:12", "tecnico": "Gerson Narciso Santos Junior", "laudo": "Foi realizada a instalação dos novos micros no equipamento, conforme solicitado, com os devidos ajustes de cabeamento. Após a instalação, foram realizados testes de funcionamento, e o equipamento foi liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "066325", "data": "28/04/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Parada", "status_final": "Operando", "causa": "Sem falha identificada", "min_atend": 30, "translado": "00:00", "tecnico": "Gabriel Henrique Silva Santos", "laudo": "Ao chegar no cliente, foi realizado a verificação no equipamento, sendo realizado diversos teste e não foi identificado nenhuma anomalia no equipamento.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "067001", "data": "06/05/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Bateria/energia", "min_atend": 50, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito a extração dos relatórios de bateria, conforme solicitado pelo suporte técnico. Logo em seguida o equipamento foi liberado para operação", "ocorrencia": "000004 - BATERIA"}, {"os": "068850", "data": "22/05/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Parada", "status_final": "Operando", "causa": "Colisão/dano por operação", "min_atend": 60, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Equipamento entrou na rua sem conectar ao fio indutivo, gerando uma nova colisão. Ao colidir a cabine ficou presa a estrutura do porta palete. Foi feito a remoção do equipamento e após analise foi feito a liberação da maquina. Foi visto se havia falhas no fio indutivo, gerador de frequência e transponderes porém não há falhas. Erro ocorreu devido a falta de atenção do operador", "ocorrencia": "000008 - CORRETIVA"}, {"os": "070843", "data": "12/06/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Telemetria/cartões", "min_atend": 60, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito o cadastro de novos operadores na telemetria Softrack, após instalação o equipamento foi liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "070939", "data": "12/06/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando com restrição", "status_final": "Operando", "causa": "Mecânica/rodas", "min_atend": 60, "translado": "00:10", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito a troca das duas rodas solicitadas em NF. Após troca o equipamento voltou para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "071373", "data": "17/06/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Telemetria/cartões", "min_atend": 60, "translado": "01:00", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito o cadastro de novos operadores na telemetria da softrack, após cadastro o equipamento voltou para operação", "ocorrencia": "000008 - CORRETIVA"}, {"os": "071718", "data": "22/06/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Colisão/dano por operação", "min_atend": 60, "translado": "01:00", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Equipamento foi parado pelo operador que relatou que estava apresentando porta aberta no painel. Ao avaliar o equipamento foi visto que houve uma colisão forte nas laterais da maquina que tirou o sensor de porta fechada de posição. Foi feito o ajuste do sensor e após testes o equipamento voltou para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "072175", "data": "26/06/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Parada", "status_final": "Parada", "causa": "Elétrica/comando", "min_atend": 33, "translado": "00:00", "tecnico": "Gabriel Henrique Silva Santos", "laudo": "Ao verificar o equipamento, foi identificado que a chave de ignição encontrava se quebrada dentro do miolo, sendo assim será solicitado como avaria para substituição. Obs: equipamento deve permanecer parado item de segurança. Caso o equipamento fique em operação o mercado livre assume a responsabilidade da utilização.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "073070", "data": "07/07/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando com restrição", "status_final": "Operando", "causa": "Hidráulica/óleo", "min_atend": 90, "translado": "01:00", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito a troca do óleo conforme solicitado, afim de sessar com o vazamento. Após troca o equipamento voltou para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "073186", "data": "08/07/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Parada", "status_final": "Operando com restrição", "causa": "Sensores/micros/antenas", "min_atend": 240, "translado": "01:00", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Equipamento estava apresentando erros intermitentes do micro magnético, porém já tinha sido sinalizado em OS anterior e já existe solicitações de novos micros como avaria devido a colisão. Porém foi feito a recuperação de um micro antigo e após longos testes o equipamento foi liberado. Foi deixado claro que o micro que esta no equipamento é um micro recuperado e que será trocado assim que o novo chegar no cliente.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "076949", "data": "13/08/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Sensores/micros/antenas", "min_atend": 60, "translado": "00:00", "tecnico": "Gabriel Henrique Silva Santos", "laudo": "Conforme solicitado, foi realizado a substituição do micro e liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "078539", "data": "27/08/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Colisão/dano por operação", "min_atend": 60, "translado": "00:00", "tecnico": "Gabriel Henrique Silva Santos", "laudo": "Ao realizar análise no equipamento, foi identificado que o operador bateu na borracha fim de curso e a maquina apresentou corrente frouxa, retirado o equipamento do local e liberado para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "078584", "data": "28/08/2026", "cliente": "EBAZAR.COM.BR. LTDA", "status_inicial": "Parada", "status_final": "Operando", "causa": "Elétrica/comando", "min_atend": 60, "translado": "01:00", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Foi feito a instalação do comutador de partida, pois o mesmo havia sido danificado em operação. Após instalação o equipamento voltou para operação.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "079709", "data": "10/09/2026", "cliente": "MERCADO LIVRE BRASIL LTDA", "status_inicial": "Operando", "status_final": "Operando", "causa": "Sensores/micros/antenas", "min_atend": 120, "translado": "01:00", "tecnico": "Luis Fernando Araujo Damasceno", "laudo": "Operadora relata que o equipamento andou só e saiu do guiamento. Foi feito as calibrações de elemento de comando, antena e guiamento indutivo. Logo após foi feito longos testes em operação e não foi mais evidenciado erros.", "ocorrencia": "000008 - CORRETIVA"}, {"os": "080814", "data": "22/09/2026", "cliente": "MERCADO LIVRE BRASIL LTDA", "status_inicial": "Parada", "status_final": "Operando", "causa": "Sem falha identificada", "min_atend": 28, "translado": "00:00", "tecnico": "Erik Leandro Da Silva Santos", "laudo": "Ao chegar no cliente, o equipamento esta em operação. Em contato com a operadora, desde o início do turno as 06h. Equipamento nao ocorreu falha. Maquina liberada.", "ocorrencia": "000008 - CORRETIVA"}];
+const fmtMin = m => { const h=Math.floor(m/60), mm=m%60; return h? `${h}h${String(mm).padStart(2,'0')}` : `${mm} min`; };
+const cls = s => s==='Operando com restrição'?'Restricao':s;
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const parada = D.filter(o=>o.status_inicial==='Parada');
+const precaria = D.filter(o=>o.status_inicial==='Operando com restrição');
+const totalParada = parada.reduce((a,o)=>a+o.min_atend,0);
+const media = parada.length? Math.round(totalParada/parada.length):0;
+document.getElementById('kpis').innerHTML = [
+  [D.length,'Ordens de serviço'],[parada.length,'Chegaram parada'],[precaria.length,'Chegaram com restrição'],
+  [fmtMin(totalParada),'Tempo somado em parada'],[fmtMin(media),'Média por parada']
+].map(([v,l])=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+// causa bars (parada)
+const agg = {};
+parada.forEach(o=>{ agg[o.causa]=agg[o.causa]||{min:0,n:0}; agg[o.causa].min+=o.min_atend; agg[o.causa].n++; });
+const causas = Object.entries(agg).sort((a,b)=>b[1].min-a[1].min);
+const maxC = Math.max(...causas.map(c=>c[1].min),1);
+document.getElementById('causaBars').innerHTML = causas.map(([c,v])=>
+  `<div class="bar"><div>${esc(c)} <span style="color:var(--mut)">(${v.n})</span></div>
+   <div class="track"><div class="fill" style="width:${v.min/maxC*100}%"></div></div>
+   <div class="num">${fmtMin(v.min)}</div></div>`).join('');
+// status bars
+const st = {Parada:parada.length, 'Operando com restrição':precaria.length, Operando:D.length-parada.length-precaria.length};
+const colors = {Parada:'var(--red)','Operando com restrição':'var(--amb)',Operando:'var(--grn)'};
+document.getElementById('statusBars').innerHTML = Object.entries(st).map(([k,v])=>
+  `<div class="bar"><div>${k}</div><div class="track"><div class="fill" style="width:${v/D.length*100}%;background:${colors[k]}"></div></div><div class="num">${v} (${Math.round(v/D.length*100)}%)</div></div>`).join('');
+// disponibilidade mensal
+(function(){
+  const PL=720, meses={};
+  const ordem=["01","02","03","04","05","06","07","08","09"];
+  const nomes={"01":"Jan","02":"Fev","03":"Mar","04":"Abr","05":"Mai","06":"Jun","07":"Jul","08":"Ago","09":"Set"};
+  ordem.forEach(m=>meses[m]=0);
+  D.forEach(o=>{ const m=o.data.slice(3,5); if(o.status_inicial==='Parada') meses[m]=(meses[m]||0)+o.min_atend; });
+  const pts=ordem.map(m=>({m, h:meses[m]/60, disp:(PL-meses[m]/60)/PL*100}));
+  const W=640,H=260,pl=48,pr=16,pt=16,pb=36, minY=98, maxY=100;
+  const x=i=>pl+(W-pl-pr)*(i+0.5)/pts.length, y=v=>pt+(H-pt-pb)*(maxY-v)/(maxY-minY);
+  let g='';
+  [98,98.5,99,99.5,100].forEach(v=>{ g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#e4e7ec"/><text x="${pl-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#6b7280">${v.toFixed(1)}%</text>`; });
+  const bw=(W-pl-pr)/pts.length*0.55;
+  pts.forEach((p,i)=>{ const top=y(p.disp), base=y(minY); g+=`<rect x="${x(i)-bw/2}" y="${top}" width="${bw}" height="${base-top}" rx="4" fill="${p.disp<99.5?'#d64545':'#2f6fdb'}"/><text x="${x(i)}" y="${top-6}" font-size="11" text-anchor="middle" fill="#1d2330">${p.disp.toFixed(1)}%</text><text x="${x(i)}" y="${H-14}" font-size="12" text-anchor="middle" fill="#6b7280">${nomes[p.m]}</text>`; });
+  const media=pts.reduce((a,p)=>a+p.disp,0)/pts.length;
+  g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(media)}" y2="${y(media)}" stroke="#1d2330" stroke-dasharray="4 4"/><text x="${W-pr}" y="${y(media)-6}" font-size="11" text-anchor="end" fill="#1d2330">média ${media.toFixed(2)}%</text>`;
+  document.getElementById('dispChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Disponibilidade mensal">${g}</svg>`;
+})();
+// filters
+const causasAll = [...new Set(D.map(o=>o.causa))].sort();
+document.getElementById('fCausa').insertAdjacentHTML('beforeend', causasAll.map(c=>`<option>${esc(c)}</option>`).join(''));
+let sortK='data', sortDir=1;
+function render(){
+  const s=document.getElementById('fStatus').value, c=document.getElementById('fCausa').value, q=document.getElementById('fBusca').value.toLowerCase();
+  let rows = D.filter(o=> (!s||o.status_inicial===s) && (!c||o.causa===c) && (!q || (o.laudo+' '+o.os).toLowerCase().includes(q)));
+  rows.sort((a,b)=>{ const x=a[sortK], y=b[sortK]; if(sortK==='data'){const f=d=>d.slice(6)+d.slice(3,5)+d.slice(0,2); return (f(x)>f(y)?1:f(x)<f(y)?-1:0)*sortDir;} return (x>y?1:x<y?-1:0)*sortDir; });
+  document.getElementById('tbody').innerHTML = rows.map(o=>`<tr>
+    <td>${o.os}</td><td>${o.data}</td>
+    <td><span class="tag t-${cls(o.status_inicial)}">${o.status_inicial}</span></td>
+    <td>${esc(o.causa)}<details><summary>laudo</summary><div class="laudo">${esc(o.laudo)}</div></details></td>
+    <td class="n">${o.min_atend}</td><td>${esc(o.tecnico)}</td>
+    <td><span class="tag t-${cls(o.status_final)}">${o.status_final}</span></td></tr>`).join('') || '<tr><td colspan="7">Nenhum registro</td></tr>';
+}
+['fStatus','fCausa','fBusca'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+document.querySelectorAll('th[data-k]').forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k; sortDir = sortK===k? -sortDir:1; sortK=k; render();}));
+render();
+</script></body></html>
