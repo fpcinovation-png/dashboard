@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard de Preventivas</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            background: #f4f5f7;
+            color: #282828
+        }
+
+        header {
+            background: #ffcd00;
+            padding: 18px 32px;
+            border-bottom: 4px solid #282828
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px
+        }
+
+        header p {
+            margin: 4px 0 0;
+            font-size: 13px
+        }
+
+        main {
+            padding: 24px 32px;
+            max-width: 1200px;
+            margin: auto
+        }
+
+        .kpis {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap
+        }
+
+        .kpi {
+            flex: 1;
+            min-width: 150px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+            border-top: 4px solid #ffcd00
+        }
+
+        .kpi b {
+            font-size: 32px;
+            display: block
+        }
+
+        .kpi span {
+            font-size: 13px;
+            color: #646464
+        }
+
+        .grid {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+            flex: 1;
+            min-width: 400px
+        }
+
+        .card h2 {
+            font-size: 16px;
+            margin: 0 0 12px
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 13px
+        }
+
+        .row .l {
+            width: 110px;
+            flex: none
+        }
+
+        .row .bar {
+            height: 18px;
+            border-radius: 3px;
+            background: #ffbe00
+        }
+
+        .row .v {
+            margin-left: 8px;
+            font-weight: 600
+        }
+
+        .c2 .bar {
+            background: #3c3c3c
+        }
+
+        .c3 .bar {
+            background: #d23232
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid #e4e4e4
+        }
+
+        th {
+            background: #fafafa
+        }
+
+        .tag {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            background: #ffec96
+        }
+
+        .donut {
+            display: flex;
+            align-items: center;
+            gap: 24px
+        }
+
+        .leg div {
+            margin: 5px 0;
+            font-size: 13px
+        }
+
+        .leg i {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 6px
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: gray;
+            padding: 16px
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Dashboard de Manutenções Preventivas</h1>
+        <p>Mercado Livre (PE01) - Cabo de Santo Agostinho/PE - Empilhadeiras EKS 412 |
+            Fonte: Milldesk, aba Solicitações fechadas</p>
+    </header>
+
+    <main>
+        <div class="kpis" id="kpis"></div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Tipo de manutenção</h2>
+                <div class="donut">
+                    <svg id="donut" width="170" height="170" viewBox="0 0 42 42"></svg>
+                    <div class="leg" id="leg"></div>
+                </div>
+            </div>
+            <div class="card c2">
+                <h2>Chamados por mês de referência (2026)</h2>
+                <div id="months"></div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card c3">
+                <h2>Chamados por equipamento (série FN732xxx)</h2>
+                <div id="assets"></div>
+            </div>
+            <div class="card">
+                <h2>Cobertura por equipamento</h2>
+                <table id="cov"></table>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Lista completa de chamados fechados</h2>
+                <table id="list"></table>
+            </div>
+        </div>
+    </main>
+
+    <footer>Dados extraídos da tela "Solicitações fechadas" do Milldesk em 18/10/2026.</footer>
+
+    <script>
+        // ---------- DADOS ----------
+        // add(tipo, mês de referência, [[ID, final da série FN732xxx], ...])
+        var D = [];
+        function add(t, m, list) {
+            list.forEach(function (x) { D.push({ id: x[0], a: x[1], t: t, m: m }); });
+        }
+        add("Simples", "AGO-26", [[521672, 708], [521668, 702], [521670, 706], [521664, 711],
+        [521663, 704], [521666, 700], [521662, 707], [521661, 705]]);
+        add("Simples", "JUL-26", [[510395, 715], [510396, 714], [510401, 703], [510394, 710],
+        [510397, 713], [510399, 701], [510400, 709], [510402, 712]]);
+        add("Completa", "ABR-26", [[468571, 704], [468575, 701], [468564, 709], [468570, 711],
+        [468576, 714], [468561, 712], [468560, 706], [468563, 700],
+        [468573, 708], [468562, 713], [468566, 703], [468567, 707],
+        [468568, 715], [468569, 702], [468572, 710], [468574, 705]]);
+        add("Envio de Óleo", "MAR-26", [[468579, 706]]);
+        add("Simples", "FEV-26", [[454560, 714]]);
+
+        // ---------- FUNÇÕES AUXILIARES ----------
+        function count(k) {
+            var o = {};
+            D.forEach(function (d) { o[d[k]] = (o[d[k]] || 0) + 1; });
+            return o;
+        }
+        function el(id) { return document.getElementById(id); }
+
+        var T = count("t"), M = count("m"), A = count("a");
+        var nAtivos = Object.keys(A).length;
+
+        // ---------- KPIs ----------
+        var kp = [
+            [D.length, "Chamados fechados"],
+            [T["Completa"], "Preventivas Completas"],
+            [T["Simples"], "Preventivas Simples"],
+            [T["Envio de Óleo"], "Envio de Óleo"],
+            [nAtivos, "Equipamentos atendidos"],
+            [(D.length / nAtivos).toFixed(1), "Média por equipamento"]
+        ];
+        el("kpis").innerHTML = kp.map(function (k) {
+            return '<div class="kpi"><b>' + k[0] + '</b><span>' + k[1] + '</span></div>';
+        }).join("");
+
+        // ---------- ROSCA (tipo) ----------
+        var cores = ["#ffbe00", "#3c3c3c", "#d23232"];
+        var off = 25, svg = "", leg = "", i = 0;
+        for (var k in T) {
+            var p = T[k] / D.length * 100;
+            svg += '<circle cx="21" cy="21" r="15.915" fill="transparent" stroke="' + cores[i] +
+                '" stroke-width="7" stroke-dasharray="' + p + ' ' + (100 - p) +
+                '" stroke-dashoffset="' + off + '"/>';
+            off -= p;
+            leg += '<div><i style="background:' + cores[i] + '"></i>' + k + ': <b>' + T[k] +
+                '</b> (' + Math.round(p) + '%)</div>';
+            i++;
+        }
+        el("donut").innerHTML = svg +
+            '<text x="21" y="23" text-anchor="middle" font-size="7" font-weight="bold">' + D.length + '</text>';
+        el("leg").innerHTML = leg;
+
+        // ---------- BARRAS ----------
+        function bars(id, obj, ordem, escala) {
+            el(id).innerHTML = ordem.map(function (k) {
+                var v = obj[k] || 0;
+                return '<div class="row"><div class="l">' + k + '</div>' +
+                    '<div class="bar" style="width:' + (v * escala) + 'px"></div>' +
+                    '<div class="v">' + v + '</div></div>';
+            }).join("");
+        }
+        bars("months", M, ["FEV-26", "MAR-26", "ABR-26", "MAI-26", "JUN-26", "JUL-26", "AGO-26", "SET-26", "OUT-26"], 18);
+
+        var ativos = Object.keys(A).sort();
+        bars("assets", A, ativos, 80);
+
+        // ---------- TABELA DE COBERTURA ----------
+        var cov = ativos.map(function (a) {
+            var det = D.filter(function (d) { return d.a == a; }).map(function (d) {
+                var tipo = d.t == "Completa" ? " (Completa)" : d.t == "Simples" ? " (Simples)" : " (Óleo)";
+                return d.m + tipo;
+            }).join(", ");
+            return '<tr><td>FN732' + a + '</td><td>' + A[a] + '</td><td>' + det + '</td></tr>';
+        }).join("");
+        el("cov").innerHTML = '<tr><th>Série</th><th>Qtd</th><th>Mês / tipo</th></tr>' + cov;
+
+        // ---------- LISTA COMPLETA ----------
+        var lista = D.slice().sort(function (a, b) { return b.id - a.id; }).map(function (d) {
+            var nome = d.t == "Envio de Óleo" ? "Envio de Óleo" : "Preventiva " + d.t;
+            return '<tr><td>' + d.id + '</td><td>' + nome + ' (' + d.m + ')</td>' +
+                '<td>EKS 412 FN732' + d.a + '</td><td><span class="tag">Fechado</span></td></tr>';
+        }).join("");
+        el("list").innerHTML = '<tr><th>ID</th><th>Assunto</th><th>Ativo</th><th>Status</th></tr>' + lista;
+    </script>
+</body>
+
+</html>
